@@ -177,6 +177,20 @@ and will re-open them when calling `eaf-browser-restore-buffers' in the future s
   ""
   :type 'string)
 
+(defcustom eaf-browser-use-curtain nil
+  "Use curtain during web page loading.
+
+when set it to a num, use curtain before the num% progress of
+loading webpage.
+
+when set it to nil, do not use curtain.
+
+this feature can be used to reduce browser flicker, but browser
+will looks slower when it enabled."
+  :type '(choice
+	  (const :tag "None" nil)
+	  (number :tag "progress number")))
+
 (defcustom eaf-browser-pc-user-agent "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0"
   ""
   :type 'string)

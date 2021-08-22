@@ -35,6 +35,10 @@ import time
 
 class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
+
+        # Curtain color.
+        self.curtain_color = None
+
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
 
         self.config_dir = get_emacs_config_dir()
@@ -55,7 +59,8 @@ class AppBuffer(BrowserBuffer):
          self.enable_adblocker, self.enable_autofill,
          self.aria2_auto_file_renaming, self.aria2_proxy_host, self.aria2_proxy_port,
          self.chrome_history_file,
-         self.translate_language) = get_emacs_vars([
+         self.translate_language,
+         self.use_curtain) = get_emacs_vars([
              "eaf-browser-dark-mode",
              "eaf-browser-remember-history",
              "eaf-browser-blank-page-url",
@@ -65,7 +70,8 @@ class AppBuffer(BrowserBuffer):
              "eaf-browser-aria2-proxy-host",
              "eaf-browser-aria2-proxy-port",
              "eaf-browser-chrome-history-file",
-             "eaf-browser-translate-language"])
+             "eaf-browser-translate-language",
+             "eaf-browser-use-curtain"])
 
         # Use thread to avoid slow down open speed.
         threading.Thread(target=self.load_history).start()
@@ -137,6 +143,15 @@ class AppBuffer(BrowserBuffer):
         self.buffer_widget.titleChanged.connect(self.record_history)
 
     def drawForeground(self, painter, rect):
+        # Draw a curtain
+        if self.use_curtain:
+            try:
+                self.use_curtain = min(int(self.use_curtain), 100)
+            except:
+                self.use_curtain = False
+        if self.use_curtain and self.progressbar_progress >= 0 and self.progressbar_progress < self.use_curtain:
+            painter.setBrush(self.curtain_color)
+            painter.drawRect(0, 0, rect.width(), rect.height())
         # Draw progress bar.
         if self.progressbar_progress > 0 and self.progressbar_progress < 100:
             painter.setBrush(QColor(self.theme_foreground_color))
@@ -538,9 +553,11 @@ class AppBuffer(BrowserBuffer):
         if self.dark_mode_is_enabled():
             # If dark mode enable, use Darkreader.js background color.
             self.buffer_widget.web_page.setBackgroundColor(QColor("#242525"))
+            self.curtain_color = QColor("#242525")
         else:
             # Otherwise use white, because most website is use white background.
             self.buffer_widget.web_page.setBackgroundColor(QColor("#FFFFFF"))
+            self.curtain_color = QColor("#FFFFFF")
 
 class HistoryPage():
     def __init__(self, title, url, hit):
